@@ -8,27 +8,30 @@ token_mask = 'tokenMask.png'
 
 class TokenGenerator(tkinter.Tk):
     def __init__(self):
-        self.file_path = filedialog.askopenfilename()
         tkinter.Tk.__init__(self)
 
         #Tkinter image setup
         self.canvas = tkinter.Canvas(self, bg="black", width=200, height=200)
         self.canvas.pack()
 
-        self.token_image = ImageTk.PhotoImage(file=self.file_path)
-        self.token_canvas_image = self.canvas.create_image(0,0,image=self.token_image)
-
-        self.border_image = tkinter.PhotoImage(file=border_file)
-        self.canvas.create_image(100,100,image=self.border_image)
+        self.pick_new_image()
 
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_move_press)
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-        self.canvas.bind("<ButtonPress-2>", self._on_enter)
-        
+        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<ButtonPress-2>", self.on_enter)
+
+    def pick_new_image(self):
+        self.file_path = filedialog.askopenfilename()
+
+        self.token_image = ImageTk.PhotoImage(file=self.file_path)
+        self.token_canvas_image = self.canvas.create_image(0,0,image=self.token_image)
         self.last_x = None
         self.last_y = None
         self.image_scale = 1
+        
+        self.border_image = tkinter.PhotoImage(file=border_file)
+        self.border_canvas_image = self.canvas.create_image(100,100,image=self.border_image)
 
     def on_button_press(self, event):
             # save mouse drag start position
@@ -42,7 +45,7 @@ class TokenGenerator(tkinter.Tk):
         self.last_x = curX
         self.last_y = curY
 
-    def _on_mousewheel(self, event):
+    def on_mousewheel(self, event):
         image = Image.open(self.file_path)
         self.image_scale += event.delta / 4000
         (width, height) = image.size
@@ -52,7 +55,7 @@ class TokenGenerator(tkinter.Tk):
         self.token_image = ImageTk.PhotoImage(resized_image)
         self.canvas.itemconfig(self.token_canvas_image, image=self.token_image)
 
-    def _on_enter(self, event):
+    def on_enter(self, event):
         art_image = Image.open(self.file_path, 'r')
         art_image = art_image.convert(mode='RGBA')
         border_image = Image.open(border_file, 'r')
@@ -78,7 +81,10 @@ class TokenGenerator(tkinter.Tk):
         final_image = Image.new(size=(200,200), color=(0,0,0,0),mode='RGBA')
         final_image.paste(im=combined_image, mask=mask_image)
 
-        final_image.show()
+        savepath = filedialog.asksaveasfile(initialfile="token.png",defaultextension=".png",filetypes=[("All Files","*.*")])
+        final_image.save(savepath.name)
+
+        self.pick_new_image()
 
 app = TokenGenerator()
 app.mainloop()
