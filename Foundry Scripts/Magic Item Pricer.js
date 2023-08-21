@@ -40,31 +40,31 @@ function displayCost () {
     if (goldTier == 0)
     {
         let r = new Roll("1d6")
-        r.evaluate()
+        r.evaluate({async: false})
         cost = (r.total + 1) * 10;
     }
     else if (goldTier == 1)
     {
         let r = new Roll("1d6")
-        r.evaluate()
+        r.evaluate({async: false})
         cost = r.total * 100;
     }
     else if (goldTier == 2)
     {
         let r = new Roll("2d10")
-        r.evaluate()
+        r.evaluate({async: false})
         cost = r.total * 1000;
     }
     else if (goldTier == 3)
     {
         let r = new Roll("1d4")
-        r.evaluate()
+        r.evaluate({async: false})
         cost = (r.total +1) * 10000;
     }
     else if (goldTier == 4)
     {
         let r = new Roll("2d6")
-        r.evaluate()
+        r.evaluate({async: false})
         cost = r.total * 25000;
     }
 
@@ -76,7 +76,7 @@ function displayCost () {
         user: game.user._id,
         speaker: ChatMessage.getSpeaker(),
         content: output,
-        whisper: game.users.entities.filter(u => u.isGM).map(u => u._id)
+        whisper: game.user._id
         };
     
     ChatMessage.create(chatData);
