@@ -1,0 +1,1 @@
+await canvas.tokens.toggleCombat();
