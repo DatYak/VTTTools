@@ -7,13 +7,12 @@ party_border = 'partyTokenBorder.png'
 enemy_border = 'enemyTokenBorder.png'
 token_mask = 'tokenMask.png'
 
-
 class TokenGenerator(tkinter.Tk):
     def __init__(self):
         tkinter.Tk.__init__(self)
 
         #Tkinter image setup
-        self.canvas = tkinter.Canvas(self, name="token generator", bg="black", width=200, height=200)
+        self.canvas = tkinter.Canvas(self, name="token_canvas", bg="black", width=200, height=200)
         self.canvas.pack()
 
         self.border_file = enemy_border
@@ -22,11 +21,12 @@ class TokenGenerator(tkinter.Tk):
 
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_move_press)
-        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
-        self.canvas.bind("<ButtonPress-2>", self.on_enter)
-        self.canvas.bind("<KP_1>", lambda n=1: self.change_border(n))
-        self.canvas.bind("<KP_2>", lambda n=2: self.change_border(n))
-        self.canvas.bind("<KP_3>", lambda n=3: self.change_border(n))
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<ButtonPress-3>", self.on_enter)
+        self.bind_all("q", lambda event, b=1: self.change_border(border=b))
+        self.bind_all("w", lambda event, b=2: self.change_border(border=b))
+        self.bind_all("e", lambda event, b=3: self.change_border(border=b))
+        tkinter.Tk.focus_force(self)
 
     def pick_new_image(self):
         self.file_path = filedialog.askopenfilename()
@@ -40,13 +40,14 @@ class TokenGenerator(tkinter.Tk):
         self.apply_border()
 
     def change_border(self, border):
+        print("changing border\n")
         if (border == 1): self.border_file = enemy_border
         if (border == 2): self.border_file = party_border
         if (border == 3): self.border_file = ally_border
         self.apply_border()
 
     def apply_border(self):
-        self.border_image = tkinter.PhotoImage(file=self.border_file)
+        self.border_image = ImageTk.PhotoImage(file=self.border_file)
         self.border_canvas_image = self.canvas.create_image(100,100,image=self.border_image)
 
     def on_button_press(self, event):
