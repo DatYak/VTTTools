@@ -1,28 +1,44 @@
 import tkinter
+import pathlib, os
 from tkinter import filedialog
 from PIL import ImageTk, Image, ImageDraw
 
-ally_border = 'allyTokenBorder.png'
-party_border = 'partyTokenBorder.png'
-enemy_border = 'enemyTokenBorder.png'
-token_mask = 'tokenMask.png'
-
 class TokenGenerator(tkinter.Tk):
+        
+    ally_border = 'Resources/allyTokenBorder.png'
+    party_border = 'Resources/partyTokenBorder.png'
+    enemy_border = 'Resources/enemyTokenBorder.png'
+    token_mask = 'Resources/tokenMask.png'
+    
     def __init__(self):
         tkinter.Tk.__init__(self)
+        self.current_path = pathlib.Path(__file__).parent.resolve()
+        self.title("Yak's Token Generator")
+        self.geometry("350x350")
+
+        self.posHint = tkinter.Label(self, text= "Click and drag to position." )
+        self.posHint.pack()
+        self.scaleHint = tkinter.Label(self, text= "Scroll mouse wheel to scale.")
+        self.scaleHint.pack()
+        self.enterHint = tkinter.Label(self, text= "Enter key to save token and close \n Right mouse to save and open a new token")
+        self.enterHint.pack()
+        self.bordersHint = tkinter.Label(self, text= "Q, W, & E change between borders")
+        self.bordersHint.pack()
 
         #Tkinter image setup
         self.canvas = tkinter.Canvas(self, name="token_canvas", bg="black", width=200, height=200)
         self.canvas.pack()
 
-        self.border_file = enemy_border
+        self.border_file = self.enemy_border
 
         self.pick_new_image()
 
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_move_press)
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
-        self.canvas.bind("<ButtonPress-3>", self.on_enter)
+        self.canvas.bind("<ButtonPress-3>", self.on_enter_continue)
+        self.bind_all("<Return>", self.on_enter)
+        self.bind_all("<Escape>", self.close)
         self.bind_all("q", lambda event, b=1: self.change_border(border=b))
         self.bind_all("w", lambda event, b=2: self.change_border(border=b))
         self.bind_all("e", lambda event, b=3: self.change_border(border=b))
@@ -40,14 +56,13 @@ class TokenGenerator(tkinter.Tk):
         self.apply_border()
 
     def change_border(self, border):
-        print("changing border\n")
-        if (border == 1): self.border_file = enemy_border
-        if (border == 2): self.border_file = party_border
-        if (border == 3): self.border_file = ally_border
+        if (border == 1): self.border_file = self.enemy_border
+        if (border == 2): self.border_file = self.party_border
+        if (border == 3): self.border_file = self.ally_border
         self.apply_border()
 
     def apply_border(self):
-        self.border_image = ImageTk.PhotoImage(file=self.border_file)
+        self.border_image = ImageTk.PhotoImage(file=os.path.join(self.current_path, self.border_file))
         self.border_canvas_image = self.canvas.create_image(100,100,image=self.border_image)
 
     def on_button_press(self, event):
@@ -73,9 +88,17 @@ class TokenGenerator(tkinter.Tk):
         self.canvas.itemconfig(self.token_canvas_image, image=self.token_image)
 
     def on_enter(self, event):
-        art_image = Image.open(self.file_path, 'r')
+        self.save_image()
+        self.close()
+
+    def on_enter_continue(self, event):
+        self.save_image()
+        self.pick_new_image()
+
+    def save_image (self):
+        art_image = Image.open(os.path.join(self.current_path, self.file_path), 'r')
         art_image = art_image.convert(mode='RGBA')
-        border_image = Image.open(self.border_file, 'r')
+        border_image = Image.open(os.path.join(self.current_path, self.border_file), 'r')
         border_image = border_image.convert(mode='RGBA')
         (width, height) = art_image.size
         width = int(width*self.image_scale)
@@ -92,16 +115,17 @@ class TokenGenerator(tkinter.Tk):
         combined_image = art_image.crop((left, upper, right, lower))
         combined_image.alpha_composite(border_image)
 
-        mask_image = Image.open(token_mask, 'r')
+        mask_image = Image.open(os.path.join(self.current_path, self.token_mask), 'r')
         mask_image.convert(mode='RGBA')
         
         final_image = Image.new(size=(200,200), color=(0,0,0,0),mode='RGBA')
         final_image.paste(im=combined_image, mask=mask_image)
 
-        savepath = filedialog.asksaveasfile(initialfile="token.png",defaultextension=".png",filetypes=[("All Files","*.*")])
+        savepath = filedialog.asksaveasfile(initialfile="T_.png",defaultextension=".png",filetypes=[("All Files","*.*")])
         final_image.save(savepath.name)
 
-        self.pick_new_image()
+    def close(self, event=None):
+        self.quit()
 
 app = TokenGenerator()
 app.mainloop()
